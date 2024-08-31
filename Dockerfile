@@ -1,20 +1,8 @@
-FROM eclipse-temurin:17-jdk-alpine as build
+FROM openjdk:17-jdk-alpine 
+# Use the OpenJDK 17 runtime with Alpine Linux as the base image.
 
-WORKDIR /app
-
-COPY .mvn/ .mvn
-COPY mvnw .
-COPY pom.xml .
-RUN ./mvnw dependency:go-offline
-
-COPY src ./src
-RUN ./mvnw package -DskipTests
-
-FROM eclipse-temurin:17-jdk-alpine
-
-VOLUME /tmp
-
-ARG JAR_FILE=target/*.jar
-COPY --from=build /app/${JAR_FILE} app.jar
+COPY target/todo-list-0.0.1-SNAPSHOT.jar app.jar
+# Copy the built JAR file from the target directory in your local machine into the container and rename it to app.jar.
 
 ENTRYPOINT ["java","-jar","/app.jar"]
+# This command tells the container to run the JAR file using the Java runtime when the container starts.
