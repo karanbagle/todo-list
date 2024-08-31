@@ -1,17 +1,20 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:11-jdk-slim
+FROM eclipse-temurin:17-jdk-alpine as build
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the project files into the working directory
-COPY . .
+COPY .mvn/ .mvn
+COPY mvnw .
+COPY pom.xml .
+RUN ./mvnw dependency:go-offline
 
-# Package the application
-RUN ./mvnw clean install
+COPY src ./src
+RUN ./mvnw package -DskipTests
 
-# Expose the port the app runs on
-EXPOSE 8080
+FROM eclipse-temurin:17-jdk-alpine
 
-# Run the application
-CMD ["./mvnw", "spring-boot:run"]
+VOLUME /tmp
+
+ARG JAR_FILE=target/*.jar
+COPY --from=build /app/${JAR_FILE} app.jar
+
+ENTRYPOINT ["java","-jar","/app.jar"]
