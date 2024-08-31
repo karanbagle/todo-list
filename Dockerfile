@@ -1,8 +1,11 @@
-FROM openjdk:17-jdk-alpine 
-# Use the OpenJDK 17 runtime with Alpine Linux as the base image.
+# Step 1: Use a Maven image to build the application
+FROM maven:3.8.6-openjdk-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean install
 
-COPY target/todo-list-0.0.1-SNAPSHOT.jar app.jar
-# Copy the built JAR file from the target directory in your local machine into the container and rename it to app.jar.
-
+# Step 2: Use the OpenJDK image to run the application
+FROM openjdk:17-jdk-alpine
+COPY --from=build /app/target/todo-list-0.0.1-SNAPSHOT.jar app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]
-# This command tells the container to run the JAR file using the Java runtime when the container starts.
