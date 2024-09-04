@@ -1,12 +1,20 @@
-# Step 1: Use a Maven image to build the application
-FROM maven:3.8-openjdk-17 AS build
+# Use a base image with Maven and a specific JDK version installed
+FROM maven:3.8.4-openjdk-17 AS build
 WORKDIR /app
+
+# Copy the project files into the container
 COPY pom.xml .
 COPY src ./src
+
+# Build the application
 RUN mvn clean install
 
-# Step 2: Use the OpenJDK image to run the application
+# Use a smaller JDK image for the runtime
 FROM openjdk:17-jdk-alpine
 WORKDIR /app
-COPY --from=build /app/target/todo-list-0.0.1-SNAPSHOT.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Copy the built JAR file from the build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Run the application
+CMD ["java", "-jar", "app.jar"]
